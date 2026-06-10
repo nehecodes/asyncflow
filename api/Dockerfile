@@ -1,4 +1,4 @@
-FROM go:1.26-alpine AS builder
+FROM golang:1.26.2-alpine AS builder
 WORKDIR /app
 COPY . /app
 RUN go mod download && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
