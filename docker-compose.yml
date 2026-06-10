@@ -1,0 +1,88 @@
+services:
+  api:
+    build: ./api/
+    ports:
+      - "8080:8080"
+    environment: 
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD_FILE=${REDIS_PASSWORD_FILE}
+    secrets:
+      - redis_password
+    networks:
+      - my-net
+    depends_on:
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 50M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+
+  redis:
+    image: redis:7
+    secrets:
+      - redis_password
+    networks:
+      - my-net
+    restart: always
+    command: >
+      sh -c "
+        redis-server --requirepass $(cat /run/secrets/redis_password)
+      "
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 50M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+
+  frontend:
+    build: ./frontend/
+    ports:
+      - "3000:3000"
+    networks:
+      - my-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 50M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+
+  worker:
+    build: ./worker/
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD_FILE=${REDIS_PASSWORD_FILE}
+    secrets:
+      - redis_password
+    networks:
+      - my-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 50M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+    restart: always
+    
+networks:
+  my-net:
+    driver: bridge
+
+secrets:
+  redis_password:
+    file: ./secrets/redis_password
