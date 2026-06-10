@@ -3,7 +3,7 @@ const axios = require('axios');
 const path = require('path');
 const app = express();
 
-const API_URL = "http://api:8000";
+const API_URL = "http://api:8080";
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'views')));
